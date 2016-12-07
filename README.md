@@ -1,5 +1,5 @@
 # java_metaspace_oom
-Minimal app for reproducing OOM Metaspace problem when there are plenty of free metaspace
+Minimal app for reproducing OOM Metaspace problem when there are plenty of free metaspace.
 
 
 ## How to compile and run
@@ -52,3 +52,7 @@ run:
      [java] 
      [java] 
 ```
+
+## The problem
+We have 23564Kb metaspace in use and we've set -XX:MaxMetaspaceSize=100m https://github.com/vlkv/java_metaspace_oom/blob/master/build.xml#L9 at startup. So why JVM throws java.lang.OutOfMemoryError: Metaspace? How to use the whole 100m of reserved memory?
+
