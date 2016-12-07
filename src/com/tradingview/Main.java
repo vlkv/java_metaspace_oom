@@ -13,15 +13,17 @@ import java.util.*;
 public class Main {
 
     final private ClassPool parentPool = new ClassPool(true);
+    static Random rnd = new Random(System.currentTimeMillis());
 
     public static void main(String[] args) {
         Main m = new Main();
         List<Class> classes = new LinkedList<>();
         Map<String, Long> metrics = new HashMap<>();
         try {
+            ClassLoader loader = new ClassLoader(m.getClass().getClassLoader());
             for (int i = 0; i < Integer.MAX_VALUE; ++i) {
                 metrics = m.getMemoryPoolsMetrics();
-                Class cls = m.generateRandomClass();
+                Class cls = m.generateRandomClass(loader);
                 classes.add(cls);
             }
         } catch (Exception ex) {
@@ -38,18 +40,16 @@ public class Main {
         }
     }
 
-    private Class generateRandomClass() throws CannotCompileException {
+    private Class generateRandomClass(ClassLoader loader) throws CannotCompileException {
         ClassPool pool = new ClassPool(parentPool);
         pool.childFirstLookup = true;
 
-        ClassLoader loader = new ClassLoader(this.getClass().getClassLoader());
-
         CtClass ctCls = pool.makeClass("java.util.Map");
-        Random rnd = new Random(System.currentTimeMillis());
+
         long salt = Math.abs(rnd.nextInt());
         CtMethod ctMethod = CtMethod.make("public java.lang.String helloWorld" + salt + "(){return \"Hello, World!\";}", ctCls);
         ctCls.addMethod(ctMethod);
-        ctCls.replaceClassName("java.util.Map", "com.tradingview.RandomClass" + salt);
+        ctCls.replaceClassName("java.util.Map", "com.tradingview.RandomClass" + salt + System.nanoTime());
         Class res = ctCls.toClass(loader, null);
         return res;
     }
