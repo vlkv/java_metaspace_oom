@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="metaspace_oom.run" default="run">
+
+    <import file="${basedir}/metaspace_oom.xml"/>
+
+    <target name="run" depends="build.modules">
+        <java classname="com.tradingview.Main" fork="true" failonerror="true">
+            <jvmarg value="-ea"/>
+            <jvmarg value="-XX:MaxMetaspaceSize=100m"/>
+            <jvmarg value="-XX:MetaspaceSize=100m"/>
+            <jvmarg value="-XX:MaxMetaspaceFreeRatio=70"/>
+            <jvmarg value="-XX:MinMetaspaceFreeRatio=40"/>
+            <jvmarg value="-XX:CompressedClassSpaceSize=100m"/>
+            <jvmarg value="-XX:InitialCodeCacheSize=100m"/>
+            <jvmarg value="-XX:ReservedCodeCacheSize=100m"/>
+            <classpath>
+                <path location="${metaspace_oom.output.dir}"/>
+                <fileset dir="${basedir}/lib" includes="*.jar"/>
+            </classpath>
+        </java>
+    </target>
+</project>

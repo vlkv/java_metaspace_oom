@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_metaspace_oom" default="compile.module.metaspace_oom">
+  <dirname property="module.metaspace_oom.basedir" file="${ant.file.module_metaspace_oom}"/>
+  
+  
+  <property name="compiler.args.metaspace_oom" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="metaspace_oom.output.dir" value="${module.metaspace_oom.basedir}/out/production/metaspace_oom"/>
+  <property name="metaspace_oom.testoutput.dir" value="${module.metaspace_oom.basedir}/out/test/metaspace_oom"/>
+  
+  <path id="metaspace_oom.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="metaspace_oom.module.production.classpath">
+    <path refid="library.javassist-3.21.0-ga.classpath"/>
+  </path>
+  
+  <path id="metaspace_oom.runtime.production.module.classpath">
+    <pathelement location="${metaspace_oom.output.dir}"/>
+    <path refid="library.javassist-3.21.0-ga.classpath"/>
+  </path>
+  
+  <path id="metaspace_oom.module.classpath">
+    <pathelement location="${metaspace_oom.output.dir}"/>
+    <path refid="library.javassist-3.21.0-ga.classpath"/>
+  </path>
+  
+  <path id="metaspace_oom.runtime.module.classpath">
+    <pathelement location="${metaspace_oom.testoutput.dir}"/>
+    <pathelement location="${metaspace_oom.output.dir}"/>
+    <path refid="library.javassist-3.21.0-ga.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.metaspace_oom">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.metaspace_oom">
+    <patternset refid="excluded.from.module.metaspace_oom"/>
+  </patternset>
+  
+  <path id="metaspace_oom.module.sourcepath">
+    <dirset dir="${module.metaspace_oom.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.metaspace_oom" depends="compile.module.metaspace_oom.production,compile.module.metaspace_oom.tests" description="Compile module metaspace_oom"/>
+  
+  <target name="compile.module.metaspace_oom.production" description="Compile module metaspace_oom; production classes">
+    <mkdir dir="${metaspace_oom.output.dir}"/>
+    <javac destdir="${metaspace_oom.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
+      <compilerarg line="${compiler.args.metaspace_oom}"/>
+      <bootclasspath refid="metaspace_oom.module.bootclasspath"/>
+      <classpath refid="metaspace_oom.module.production.classpath"/>
+      <src refid="metaspace_oom.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.metaspace_oom"/>
+    </javac>
+    
+    <copy todir="${metaspace_oom.output.dir}">
+      <fileset dir="${module.metaspace_oom.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.metaspace_oom.tests" depends="compile.module.metaspace_oom.production" description="compile module metaspace_oom; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.metaspace_oom" description="cleanup module">
+    <delete dir="${metaspace_oom.output.dir}"/>
+    <delete dir="${metaspace_oom.testoutput.dir}"/>
+  </target>
+</project>
