@@ -1,13 +1,10 @@
 package com.tradingview;
 
-import com.sun.org.apache.bcel.internal.util.ClassLoader;
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
+import javassist.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
+import java.lang.reflect.Field;
 import java.util.*;
 
 public class Main {
@@ -15,41 +12,52 @@ public class Main {
     final private ClassPool parentPool = new ClassPool(true);
     static Random rnd = new Random(System.currentTimeMillis());
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Main m = new Main();
+        ClassesCache classesCache = new ClassesCache(150);
         List<Class> classes = new LinkedList<>();
+        List<Object> objects = new LinkedList<>();
         Map<String, Long> metrics = new HashMap<>();
         try {
-            ClassLoader loader = new ClassLoader(m.getClass().getClassLoader());
+            ClassPool pool = new ClassPool(m.parentPool);
+            ClassLoader loader = new ClassLoader(m.getClass().getClassLoader()) {};
             for (int i = 0; i < Integer.MAX_VALUE; ++i) {
                 metrics = m.getMemoryPoolsMetrics();
-                Class cls = m.generateRandomClass(loader);
-                classes.add(cls);
+                Class cls = m.generateRandomClass(loader, pool);
+                //classes.add(cls);
+                classesCache.putClass(String.valueOf(i), cls);
+                //Object obj = cls.newInstance();
+                //objects.add(obj);
+
+                removeClass(cls, loader);
+                classesCache.removeEmptyWeakRefs();
             }
-        } catch (Exception ex) {
+        } finally {
             StringBuilder sb = new StringBuilder();
-            sb.append("Exception catched: " + ex + "\n");
             for (Map.Entry<String, Long> e : metrics.entrySet()) {
                 sb.append(e.getKey() + " = " + e.getValue() / 1024 + " Kb\n");
             }
             System.out.println(sb.toString());
-        } finally {
-            StringBuilder sb = new StringBuilder();
-
-            System.out.println(sb.toString());
         }
     }
 
-    private Class generateRandomClass(ClassLoader loader) throws CannotCompileException {
-        ClassPool pool = new ClassPool(parentPool);
-        pool.childFirstLookup = true;
+    private static void removeClass(Class cls, ClassLoader loader) throws Exception {
+        Class lc = loader.getClass();
+        Field f = lc.getSuperclass().getDeclaredField("classes");
+        f.setAccessible(true);
+        Vector<Class<?>> classes = (Vector<Class<?>>)f.get(loader);
+        classes.remove(cls);
+    }
 
-        CtClass ctCls = pool.makeClass("java.util.Map");
+    private Class generateRandomClass(ClassLoader loader, ClassPool pool) throws CannotCompileException {
+
+        //pool.childFirstLookup = true;
 
         long salt = Math.abs(rnd.nextInt());
+        CtClass ctCls = pool.makeClass("com.tradingview.RandomClass" + salt + System.nanoTime());
         CtMethod ctMethod = CtMethod.make("public java.lang.String helloWorld" + salt + "(){return \"Hello, World!\";}", ctCls);
         ctCls.addMethod(ctMethod);
-        ctCls.replaceClassName("java.util.Map", "com.tradingview.RandomClass" + salt + System.nanoTime());
+        //Class res = ctCls.toClass(new ClassLoader(loader){}, null);
         Class res = ctCls.toClass(loader, null);
         return res;
     }
